@@ -1,9 +1,15 @@
 # cargo-features = ["edition2024"] # DOCS: https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#edition-2024
 
+# Documentation : https://rust-cli.github.io/book/tutorial/packaging.html
 [package]
 name = "thirdeye"
 version = "0.1.0"
+authors = ["Eshan Roy <eshanized@proton.me>"]
+license = "MIT"
 edition = "2021"
 description = "An under development search engine written in rust."
+homepage = "https://github.com/TonmoyInfrastructure/ThirdEye"
+repository = "https://github.com/TonmoyInfrastructure/ThirdEye"
+categories = ["search-engine"]
 
 [dependencies]
