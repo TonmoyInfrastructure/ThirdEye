@@ -13,4 +13,4 @@ repository = "https://github.com/TonmoyInfrastructure/ThirdEye"
 categories = ["search-engine"]
 
 [dependencies]
-time = "0.1.12" # Documentation : https://doc.rust-lang.org/cargo/guide/dependencies.html
+time = "0.2.0" # Documentation : https://doc.rust-lang.org/cargo/guide/dependencies.html
