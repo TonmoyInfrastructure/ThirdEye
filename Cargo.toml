@@ -15,5 +15,6 @@ categories = ["search-engine"]
 [dependencies]
 actix-web = "4.5.1"
 handlers = "0.10.0"
+models-parser = "=0.1.0"
 time = "0.3.36"
 tokio = { version = "1.37.0", features = ["full"] }
