@@ -15,4 +15,5 @@ categories = ["search-engine"]
 [dependencies]
 actix-web = "4.5.1"
 time = "0.3.36" # Documentation : https://doc.rust-lang.org/cargo/guide/dependencies.html
-tokio = "1.37.0"
+# tokio = "1.37.0"
+tokio = { version = "1.37.0", features = ["full"] }
