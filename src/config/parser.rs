@@ -4,9 +4,10 @@
 
 use crate::handler::{file_path, FileType};
 /* 
-* This defines a system struct, an object trait, and a handler trait for each defined handler in the system. 
-* The system will have each signal as a method, which will call the appropriate slot for each object of 
-* that handler type it contains
+* This defines a system struct, an object trait, and a handler trait for each 
+* defined handler in the system. The system will have each signal as a method, 
+* which will call the appropriate slot for each object of that handler type it 
+* contains.
 */
 
 /* 
@@ -106,6 +107,105 @@ impl Config{
         */
         let debug: bool = globals.get("debug")?;
         let logging: bool = globals.get("logging")?;
-        let adaptive_window: bool = globals.get("adaptive_window")?;    
+        let adaptive_window: bool = globals.get("adaptive_window")?;
+        /* 
+        * Similar to parsed_threads, these lines retrieve boolean values from Lua global variables.
+        */   
+        if !logging_initialized {
+            set_logging_level(debug, logging);
+        }
+        /* 
+        * If logging has not been initialized externally, it sets the logging level based on the 
+        * retrieved debug and logging flags.
+        */    
+        let threads: u8 = if parsed_threads == 0 {
+            let total_num_of_threads: usize = available_parallelism()?.get() / 2;
+            log::error!(
+                "Config Error: The value of `threads` option should be a non-zero positive integer"
+            );
+            log::error!("Falling back to using {} threads", total_num_of_threads);
+            total_num_of_threads as u8
+        } else {
+            parsed_threads
+        };
+        /* 
+        * Determines the number of threads to use. If parsed_threads is zero, it calculates the total number 
+        * of threads available and logs an error message, falling back to using half of them. Otherwise, 
+        * it uses the parsed value.
+        */
+        let rate_limiter: HashMap<String, u8> = globals.get("rate_limiter")?;
+        /* 
+        * Retrieves a Lua table representing the rate limiter configuration and tries to parse it 
+        * into a HashMap<String, u8>.
+        */
+        let parsed_safe_search: u8 = globals.get("safe_search")?;
+        let safe_search: u8 = match parsed_safe_search {
+            0..=4 => parsed_safe_search,
+            _ => {
+                log::error!(
+                    "Config Error: The value of `safe_search` option should be a non-zero positive integer from 0 to 4."
+                );
+                log::error!("Falling back to using the value `1` for the option");
+                1
+            }
+        };
+        /* 
+        * Parses the safe search value from Lua and ensures it falls within a certain range. If not, it logs an 
+        * error and falls back to 1.
+        */
+        #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
+        let parsed_cet = globals.get("cache_expiry_time")?;
+        #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
+        let cache_expiry_time = match parsed_cet {
+            0..=59 => {
+                log::error!(
+                    "Config Error: The value of `cache_expiry_time` must be greater than 60"
+                );
+                log::error!("Falling back to using the value `60` for the option");
+                60
+            }
+            _ => parsed_cet,
+        };
+        /* 
+        * Conditional compilation based on whether the features "redis-cache" or "memory-cache" are enabled. 
+        * If enabled, retrieves and validates the cache expiry time. If it's less than 60, logs an error and 
+        * falls back to 60.
+        */
+        Ok(Config {
+            port: globals.get::<_, u16>("port")?,
+            binding_ip: globals.get::<_, String>("binding_ip")?,
+            style: Style::new(
+                globals.get::<_, String>("theme")?,
+                globals.get::<_, String>("colorscheme")?,
+                globals.get::<_, Option<String>>("animation")?,
+            ),
+            /* 
+            * Retrieves various configuration values and constructs a Style object.
+            */
+            #[cfg(feature = "redis-cache")]
+            redis_url: globals.get::<_, String>("redis_url")?,
+            /* 
+            * Retrieves the Redis URL if the "redis-cache" feature is enabled.
+            */
+            aggregator: AggregatorConfig {
+                random_delay: globals.get::<_, bool>("production_use")?,
+            },
+            logging,
+            debug,
+            adaptive_window,
+            upstream_search_engines: globals
+                .get::<_, HashMap<String, bool>>("upstream_search_engines")?,
+            request_timeout: globals.get::<_, u8>("request_timeout")?,
+            tcp_connection_keepalive: globals.get::<_, u8>("tcp_connection_keepalive")?,
+            pool_idle_connection_timeout: globals.get::<_, u8>("pool_idle_connection_timeout")?,
+            threads,
+            rate_limiter: RateLimiter {
+                number_of_requests: rate_limiter["number_of_requests"],
+                time_limit: rate_limiter["time_limit"],
+            },
+            safe_search,
+            #[cfg(any(feature = "redis-cache", feature = "memory-cache"))]
+            cache_expiry_time,
+        })
     }
 }
