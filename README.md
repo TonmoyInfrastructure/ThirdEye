@@ -1,0 +1,1 @@
+> You must follow to commitizen *Commit* validation. [Read Documentation](https://commitizen-tools.github.io/commitizen/)
