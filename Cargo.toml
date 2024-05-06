@@ -13,4 +13,6 @@ repository = "https://github.com/TonmoyInfrastructure/ThirdEye"
 categories = ["search-engine"]
 
 [dependencies]
-time = "0.2.0" # Documentation : https://doc.rust-lang.org/cargo/guide/dependencies.html
+actix-web = "4.5.1"
+time = "0.3.36" # Documentation : https://doc.rust-lang.org/cargo/guide/dependencies.html
+tokio = "1.37.0"
